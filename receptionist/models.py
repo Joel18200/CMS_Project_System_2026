@@ -10,21 +10,54 @@ name_validator = RegexValidator(
 )
 
 
+
+from django.db import models
+
+
 class ReceptionistProfile(models.Model):
     user = models.OneToOneField(
         "auth.User",
         on_delete=models.CASCADE,
         related_name="receptionist_profile",
     )
-    employee_id = models.CharField(max_length=20, unique=True)
+    employee_id = models.CharField(
+        max_length=20,
+        unique=True,
+        blank=True,
+    )
+
+    def save(self, *args, **kwargs):
+        if not self.employee_id:
+            last_receptionist = (
+                ReceptionistProfile.objects
+                .order_by("-id")
+                .first()
+            )
+
+            next_id = (
+                1 if last_receptionist is None
+                else last_receptionist.id + 1
+            )
+
+            self.employee_id = f"R{next_id:03d}"
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.employee_id
 
 
+
 class Patient(models.Model):
-    patient_number = models.CharField(max_length=20, unique=True)
-    first_name = models.CharField(max_length=100, validators=[name_validator])
+    patient_number = models.CharField(
+        max_length=20,
+        unique=True,
+        blank=True
+    )
+    first_name = models.CharField(
+        max_length=100,
+        validators=[name_validator]
+    )
     last_name = models.CharField(max_length=100, blank=True)
     date_of_birth = models.DateField()
     gender = models.CharField(max_length=20)
@@ -32,6 +65,20 @@ class Patient(models.Model):
     email = models.EmailField(blank=True)
     address = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if not self.patient_number:
+            last_patient = Patient.objects.order_by("-id").first()
+
+            if last_patient and last_patient.patient_number:
+                last_number = int(last_patient.patient_number[1:])
+                next_number = last_number + 1
+            else:
+                next_number = 1
+
+            self.patient_number = f"P{next_number:03d}"
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.patient_number} - {self.first_name} {self.last_name}".strip()

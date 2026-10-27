@@ -23,7 +23,7 @@ class ReceptionistProfile(models.Model):
 
 
 class Patient(models.Model):
-    patient_number = models.CharField(max_length=20, unique=True)
+    patient_number = models.CharField(max_length=20, unique=True,blank=True)
     first_name = models.CharField(max_length=100, validators=[name_validator])
     last_name = models.CharField(max_length=100, blank=True)
     date_of_birth = models.DateField()
@@ -32,6 +32,13 @@ class Patient(models.Model):
     email = models.EmailField(blank=True)
     address = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    def save(self, *args, **kwargs):
+        if not self.patient_number:
+            last_patient = Patient.objects.order_by("-id").first()
+            next_id = 1 if last_patient is None else last_patient.id + 1
+            self.patient_number = f"P{next_id:03d}"
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.patient_number} - {self.first_name} {self.last_name}".strip()

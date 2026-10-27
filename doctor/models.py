@@ -9,7 +9,7 @@ class DoctorProfile(models.Model):
         on_delete=models.CASCADE,
         related_name="doctor_profile",
     )
-    employee_id = models.CharField(max_length=20, unique=True)
+    employee_id = models.CharField(max_length=20, unique=True,blank=True,)
     specialization = models.CharField(max_length=100)
     qualification = models.CharField(max_length=150)
     registration_number = models.CharField(max_length=50, unique=True)
@@ -23,6 +23,13 @@ class DoctorProfile(models.Model):
         validators=[MinValueValidator(1)],
     )
     accepting_bookings = models.BooleanField(default=True)
+    def save(self, *args, **kwargs):
+        if not self.employee_id:
+            last_doctor = DoctorProfile.objects.order_by("-id").first()
+            next_id = 1 if last_doctor is None else last_doctor.id + 1
+            self.employee_id = f"D{next_id:03d}"
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.employee_id} - {self.user.get_full_name()}"

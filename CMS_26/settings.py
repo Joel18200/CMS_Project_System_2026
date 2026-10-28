@@ -45,6 +45,27 @@ INSTALLED_APPS = [
     'labtechnician',
     'core',
 ]
+# Django REST Framework configuration
+REST_FRAMEWORK = {
+    # Read JWT access tokens from the Authorization header
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+
+    # Keep existing APIs accessible for now.
+    # We will protect the relevant endpoints after login works.
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',
+    ],
+}
+
+# JWT token configuration
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+}
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

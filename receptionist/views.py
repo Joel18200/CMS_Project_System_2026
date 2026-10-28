@@ -1,16 +1,20 @@
-
 from django.db.models import Q
 from rest_framework import generics
-
-#from .auth import IsReceptionist
-from rest_framework.permissions import AllowAny
+from .auth import IsReceptionist
+#from rest_framework.permissions import AllowAny
 from .models import Patient
 from .serializers import PatientSerializer
+from rest_framework_simplejwt.views import TokenObtainPairView
+from .serializers import ReceptionistTokenObtainPairSerializer
 
+
+class ReceptionistLoginView(TokenObtainPairView):
+    serializer_class = ReceptionistTokenObtainPairSerializer
 
 class PatientListCreateAPIView(generics.ListCreateAPIView):
     serializer_class = PatientSerializer
-    permission_classes = [AllowAny]
+    # Only authenticated users with a ReceptionistProfile can access these APIs.
+    permission_classes = [IsReceptionist]
 
     def get_queryset(self):
         queryset = Patient.objects.all().order_by("-created_at")
@@ -31,28 +35,8 @@ class PatientListCreateAPIView(generics.ListCreateAPIView):
 
         return queryset
 
-
 class PatientDetailUpdateAPIView(generics.RetrieveUpdateAPIView):
     queryset = Patient.objects.all()
     serializer_class = PatientSerializer
-    permission_classes = [AllowAny]
-
-# from django.shortcuts import render
-# from .auth import IsReceptionist
-# # Create your views here.
-
-# from rest_framework import generics
-# from rest_framework.permissions import IsAuthenticated
-
-# from .models import Patient
-# from .serializers import PatientSerializer
-
-
-# class PatientListCreateAPIView(generics.ListCreateAPIView):
-#     queryset = Patient.objects.all().order_by("-created_at")
-#     serializer_class = PatientSerializer
-#     permission_classes = [IsReceptionist]
-# class PatientDetailUpdateAPIView(generics.RetrieveUpdateAPIView):
-#     queryset = Patient.objects.all()
-#     serializer_class = PatientSerializer
-#     permission_classes = [IsReceptionist]
+    # Only authenticated users with a ReceptionistProfile can access these APIs.
+    permission_classes = [IsReceptionist]

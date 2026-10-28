@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import PatientListCreateAPIView, PatientDetailUpdateAPIView
-
+from .views import ReceptionistLoginView
 urlpatterns = [
     # List all patients and register a new patient
     path(
@@ -15,5 +15,10 @@ urlpatterns = [
         PatientDetailUpdateAPIView.as_view(),
         name="patient-detail-update",
     ),
+    path(
+    "receptionist/login/",
+    ReceptionistLoginView.as_view(),
+    name="receptionist-login",
+),
 ]
 

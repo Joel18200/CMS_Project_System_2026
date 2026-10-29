@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import IntegrityError, models, transaction
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 
@@ -9,10 +9,7 @@ name_validator = RegexValidator(
     code="invalid_name",
 )
 
-
-
 from django.db import models
-
 
 class ReceptionistProfile(models.Model):
     user = models.OneToOneField(
@@ -67,18 +64,23 @@ class Patient(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
-        if not self.patient_number:
+        # An explicit number (or an update) saves normally.
+        if self.patient_number:
+            return super().save(*args, **kwargs)
+
+        # Auto-generate P001, P002... Two simultaneous registrations can compute the
+        # same number; the unique constraint rejects one, so retry with a fresh number.
+        for attempt in range(5):
             last_patient = Patient.objects.order_by("-id").first()
-
-            if last_patient and last_patient.patient_number:
-                last_number = int(last_patient.patient_number[1:])
-                next_number = last_number + 1
-            else:
-                next_number = 1
-
-            self.patient_number = f"P{next_number:03d}"
-
-        super().save(*args, **kwargs)
+            last_number = int(last_patient.patient_number[1:]) if last_patient else 0
+            self.patient_number = f"P{last_number + 1:03d}"
+            try:
+                with transaction.atomic():  # savepoint so a failed insert is recoverable
+                    return super().save(*args, **kwargs)
+            except IntegrityError:
+                self.patient_number = ""
+                if attempt == 4:
+                    raise
 
     def __str__(self):
         return f"{self.patient_number} - {self.first_name} {self.last_name}".strip()

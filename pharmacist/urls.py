@@ -1,5 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
+from .views import DispensePrescriptionView
 
 from .views import (
     PharmacistProfileViewSet,
@@ -10,6 +11,8 @@ from .views import (
     StockMovementViewSet,
     MedicinePaymentViewSet,
     PatientPrescriptionView,
+    DispensePrescriptionView,
+    MedicineBillDetailView
 )
 
 router = DefaultRouter()
@@ -56,5 +59,17 @@ urlpatterns = [
         "patient-prescriptions/",
         PatientPrescriptionView.as_view(),
         name="patient-prescriptions",
+    ),
+
+    path(
+    "dispense/",
+    DispensePrescriptionView.as_view(),
+    name="dispense-prescription",
+    ),
+
+    path(
+    "bills/<int:bill_id>/",
+    MedicineBillDetailView.as_view(),
+    name="medicine-bill-detail",
     ),
 ]

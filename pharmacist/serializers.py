@@ -8,6 +8,8 @@ from .models import (
     InventoryBatch,
     StockMovement,
     MedicinePayment,
+    MedicineBill, 
+    MedicineBillItem
 )
 
 
@@ -93,3 +95,55 @@ class PatientPrescriptionSerializer(serializers.ModelSerializer):
     def get_patient_name(self, obj):
         patient = obj.consultation.appointment.patient
         return f"{patient.first_name} {patient.last_name}".strip()
+
+
+class MedicineBillItemDetailSerializer(serializers.ModelSerializer):
+    medicine_name = serializers.CharField(
+        source="prescription_item.medicine.name",
+        read_only=True,
+    )
+    batch_number = serializers.CharField(
+        source="inventory_batch.batch_number",
+        read_only=True,
+    )
+    expiry_date = serializers.DateField(
+        source="inventory_batch.expiry_date",
+        read_only=True,
+    )
+
+    class Meta:
+        model = MedicineBillItem
+        fields = [
+            "id",
+            "medicine_name",
+            "batch_number",
+            "expiry_date",
+            "quantity",
+            "rate",
+            "mrp",
+            "discount_amount",
+            "net_amount",
+        ]
+
+
+class MedicineBillDetailSerializer(serializers.ModelSerializer):
+    items = MedicineBillItemDetailSerializer(many=True, read_only=True)
+    dispensed_by_name = serializers.CharField(
+        source="dispensed_by.username",
+        read_only=True,
+    )
+
+    class Meta:
+        model = MedicineBill
+        fields = [
+            "id",
+            "bill_number",
+            "bill_date",
+            "prescription",
+            "subtotal",
+            "discount_amount",
+            "tax_amount",
+            "total_amount",
+            "dispensed_by_name",
+            "items",
+        ]

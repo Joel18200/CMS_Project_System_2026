@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'pharmacist',
     'labtechnician',
     'core',
+    'rest_framework.authtoken',
 ]
 # Django REST Framework configuration
 REST_FRAMEWORK = {
@@ -105,7 +106,7 @@ DATABASES = {
         "ENGINE": "django.db.backends.mysql",
         "NAME": "cms_26",
         "USER": "root",
-        "PASSWORD": "9778154",
+        "PASSWORD": "faith",
         "HOST": "127.0.0.1",
         "PORT": "3306",
     }
@@ -153,3 +154,4 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+

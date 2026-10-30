@@ -12,6 +12,27 @@ class LabTechnicianProfile(models.Model):
     )
     employee_id = models.CharField(max_length=20, unique=True)
 
+    
+    def save(self, *args, **kwargs):
+        if not self.employee_id:
+            last_lab_technician = (
+                LabTechnicianProfile.objects
+                .filter(employee_id__startswith="LT")
+                .order_by("-id")
+                .first()
+            )
+
+            if last_lab_technician is None:
+                next_id = 1
+            else:
+                next_id = int(
+                    last_lab_technician.employee_id[2:]
+                ) + 1
+
+            self.employee_id = f"LT{next_id:03d}"
+
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return self.employee_id
 

@@ -74,6 +74,21 @@ class InventoryBatch(models.Model):
         decimal_places=2,
         validators=[MinValueValidator(0)],
     )
+
+    selling_price_per_unit = models.DecimalField(
+    max_digits=10,
+    decimal_places=2,
+    default=0,
+    validators=[MinValueValidator(0)],
+    )
+
+    mrp_per_unit = models.DecimalField(
+    max_digits=10,
+    decimal_places=2,
+    default=0,
+    validators=[MinValueValidator(0)],
+    )
+
     received_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -194,3 +209,100 @@ class MedicinePayment(models.Model):
             f"Prescription {self.prescription_id} - "
             f"{self.payment_status}"
         )
+
+
+class MedicineBill(models.Model):
+    bill_number = models.CharField(max_length=30, unique=True)
+
+    prescription = models.ForeignKey(
+        "doctor.Prescription",
+        on_delete=models.PROTECT,
+        related_name="medicine_bills",
+    )
+
+    payment = models.ForeignKey(
+        MedicinePayment,
+        on_delete=models.PROTECT,
+        related_name="bills",
+    )
+
+    bill_date = models.DateTimeField(auto_now_add=True)
+
+    subtotal = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0
+    )
+    discount_amount = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0
+    )
+    tax_amount = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0
+    )
+    total_amount = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0
+    )
+
+    dispensed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="medicine_bills_dispensed",
+    )
+
+    def __str__(self):
+        return self.bill_number
+
+
+class MedicineBillItem(models.Model):
+    bill = models.ForeignKey(
+        MedicineBill,
+        on_delete=models.CASCADE,
+        related_name="items",
+    )
+
+    prescription_item = models.ForeignKey(
+        "doctor.PrescriptionItem",
+        on_delete=models.PROTECT,
+    )
+
+    inventory_batch = models.ForeignKey(
+        InventoryBatch,
+        on_delete=models.PROTECT,
+    )
+
+    quantity = models.PositiveIntegerField()
+
+    rate = models.DecimalField(
+        max_digits=10, decimal_places=2
+    )
+
+    mrp = models.DecimalField(
+        max_digits=10, decimal_places=2
+    )
+
+    discount_amount = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0
+    )
+
+    gst_rate = models.DecimalField(
+        max_digits=5, decimal_places=2, default=0
+    )
+
+    cgst_amount = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0
+    )
+
+    sgst_amount = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0
+    )
+
+    net_amount = models.DecimalField(
+        max_digits=10, decimal_places=2
+    )
+
+    stock_movement = models.OneToOneField(
+        "StockMovement",
+        on_delete=models.PROTECT,
+        related_name="bill_item",
+    )
+
+    def __str__(self):
+        return f"{self.bill.bill_number} - {self.prescription_item.medicine}"
